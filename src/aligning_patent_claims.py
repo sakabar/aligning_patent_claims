@@ -1,8 +1,21 @@
+"""Aligning Patent Claims
+
+Usage: aligning_patent_claims.py (--claim | --detail) <csv_path>
+       aligning_patent_claims.py [-h | --help]
+
+
+Options:
+    -h --help   show this help message and exit
+    --claim     FIXME
+    --detail    FIXME
+"""
+
 import csv
 from enum import Enum
 import sys
 import re
 import os.path #あまり使いたくないけど…
+from docopt import docopt
 
 #列挙型
 class ReadArea(Enum):
@@ -11,27 +24,29 @@ class ReadArea(Enum):
     detail = 3
 
 def main():
-    #コマンドライン引数で読み込むCSVファイルをフルパスで指定する
-    if(len(sys.argv) != 2):
-        raise Exception("ArgumentError: it needs only one argument")
+    args = docopt(__doc__)
+    csv_path = args["<csv_path>"]
 
-    csv_path = sys.argv[1]
     if (not os.path.exists(csv_path)):
         raise Exception("ArgumentError: The csv file dosn't exists")
 
-    read_csv(csv_path)
+    if(args["--claim"]):
+        output_claim(csv_path)
+    elif(args["--detail"]):
+        output_detail(csv_path)
+
     return
 
 #アノテート結果のCSVファイル(未加工)を標準入力から読み込む
 #すなわち、中に入っている文字は全角英数やHTMLタグ(下付き<SB>など)が残っている
 #加工しないまま扱っているのは、全角ダブルクォーテーションがCSVの値に入っているためである。
-def read_csv(csv_path):
+def output_claim(csv_path):
     detail_regex = re.compile('^【[0-9０１２３４５６７８９]+】') #ここはわざと全角にしている。全角の0から9がハイフンで省略できるか分からないため、愚直に書いている
 
     with open(csv_path, 'r') as f:
         readArea = ReadArea.start
         claims = {} #請求項に関する情報を記憶する辞書
-        details = [] #詳細説明に関する情報を記憶する配列
+        # details = [] #詳細説明に関する情報を記憶する配列
 
         reader = csv.reader(f)
         header = next(reader) #1行目は特許そのものに関する情報。
@@ -52,8 +67,44 @@ def read_csv(csv_path):
                     else:
                         claims[num] = st
 
+        for num,st in claims.items():
+            sys.stdout.write(str(num) + "\t")
+            print(st.replace('\n', ''))
+
+    return
+
+
+
+#読み込むCSVの状態はoutput_claim()と同様
+def output_detail(csv_path):
+    detail_regex = re.compile('^【[0-9０１２３４５６７８９]+】') #ここはわざと全角にしている。全角の0から9がハイフンで省略できるか分からないため、愚直に書いている
+
+    with open(csv_path, 'r') as f:
+        readArea = ReadArea.start
+        # claims = {} #請求項に関する情報を記憶する辞書
+        details = [] #詳細説明に関する情報を記憶する配列
+
+        reader = csv.reader(f)
+        header = next(reader) #1行目は特許そのものに関する情報。
+
+        for csv_line_obj in reader:
+            if csv_line_obj[0] == '【特許請求の範囲】':
+                readArea = ReadArea.claim
+            elif csv_line_obj[0] == '【発明の詳細な説明】':
+                readArea = ReadArea.detail
+
+            # #請求項に関する行→情報をclaimsに記憶
+            # if (readArea == ReadArea.claim):
+            #     if (len(csv_line_obj) == 2 and len(csv_line_obj[1]) > 0):
+            #         st = csv_line_obj[0]
+            #         num = int(csv_line_obj[1])
+            #         if num in claims:
+            #             claims[num] += st
+            #         else:
+            #             claims[num] = st
+
             #詳細説明に関する行→どうしようかね。
-            elif (readArea == ReadArea.detail):
+            if (readArea == ReadArea.detail):
                 if(len(csv_line_obj) >= 2):
                     st = csv_line_obj[0]
                     match_obj = detail_regex.search(st)
