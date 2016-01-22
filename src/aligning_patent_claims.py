@@ -1,16 +1,31 @@
 import csv
-#pandasをインストールしようとしたけど失敗。
 from enum import Enum
 import sys
 import re
 import os.path #あまり使いたくないけど…
 
+#列挙型
 class ReadArea(Enum):
     start = 1
     claim = 2
     detail = 3
 
-def main2(csv_path):
+def main():
+    #コマンドライン引数で読み込むCSVファイルをフルパスで指定する
+    if(len(sys.argv) != 2):
+        raise Exception("ArgumentError: it needs only one argument")
+
+    csv_path = sys.argv[1]
+    if (not os.path.exists(csv_path)):
+        raise Exception("ArgumentError: The csv file dosn't exists")
+
+    read_csv(csv_path)
+    return
+
+#アノテート結果のCSVファイル(未加工)を標準入力から読み込む
+#すなわち、中に入っている文字は全角英数やHTMLタグ(下付き<SB>など)が残っている
+#加工しないまま扱っているのは、全角ダブルクォーテーションがCSVの値に入っているためである。
+def read_csv(csv_path):
     detail_regex = re.compile('^【[0-9０１２３４５６７８９]+】') #ここはわざと全角にしている。全角の0から9がハイフンで省略できるか分からないため、愚直に書いている
 
     with open(csv_path, 'r') as f:
@@ -51,22 +66,6 @@ def main2(csv_path):
 
     return
 
-
-def main():
-    #アノテート結果のCSVファイル(未加工)を標準入力から読み込む
-    #すなわち、中に入っている文字は全角英数やHTMLタグ(下付き<SB>など)が残っている
-    #加工しないまま扱っているのは、全角ダブルクォーテーションがCSVの値に入っているためである。
-
-    #コマンドライン引数で読み込むCSVファイルをフルパスで指定する
-    if(len(sys.argv) != 2):
-        raise Exception("ArgumentError: it needs only one argument")
-   
-    csv_path = sys.argv[1]
-    if (not os.path.exists(csv_path)):
-        raise Exception("ArgumentError: The csv file dosn't exists")
-
-    main2(csv_path)
-    return
 
 if __name__ == '__main__':
     main()
