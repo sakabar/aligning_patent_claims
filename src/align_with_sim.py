@@ -79,16 +79,19 @@ def execute_with_sim_th(sim_th, patent_ids):
                 sim = 1.0
                 if(args["--rouge"]):
                     sim *= calc_rouge(2, claim_wakati_lst, detail_wakati_lst) #claim, detailの順に注意
+
+                dp_sim_tpl = calc_dp_matching_sim_and_dp_mod_sim(claim_wakati_lst, detail_wakati_lst)
+                
                 if(args["--dpmatch"]):
                     # if(args["--debug"]):
                     #    sys.stderr.write("dpmatch\n")
 
-                    sim *= calc_dp_matching_sim(claim_wakati_lst, detail_wakati_lst)
+                    sim *= dp_sim_tpl[0]
                 if(args["--dpmod"]):
                     # if(args["--debug"]):
                     #    sys.stderr.write("dpmod\n")
 
-                    sim *= calc_dp_mod_sim(claim_wakati_lst, detail_wakati_lst)
+                    sim *= dp_sim_tpl[1]
 
                 lst.append((claim_id, sim))
 
@@ -108,7 +111,7 @@ def execute_with_sim_th(sim_th, patent_ids):
 
 def main():
     patent_ids = [line.rstrip() for line in sys.stdin.readlines()]
-    answers = [execute_with_sim_th(i / 10.0, patent_ids) for i in range(0, 4)]
+    answers = [execute_with_sim_th(i / 10.0, patent_ids) for i in range(0, 10)]
     sorted_ans = sorted(answers, key=lambda tpl: tpl[1])
 
     print(sorted_ans[-1])
@@ -205,7 +208,7 @@ def dp_matching(lst0, lst1):
             if b == max_score:
                 from_arr[i][j] = Direction.up
             if c == max_score:
-                from_arr[i][j] = Direction.diag
+                from_arr[i][j] = Direction.diag #diagが最も優先される
 
     return (score_arr, from_arr)
 
@@ -221,36 +224,41 @@ def get_ptrs(from_arr, row, col):
         elif from_arr[row][col] == Direction.diag:
             return get_ptrs(from_arr, row-1, col-1) + [from_arr[row][col]]
 
-def output_ptrs(from_arr, len_row, len_col):
-    vec_arr = ["Start", "Down", "Right", "Diag"]
+# def calc_dp_matching_sim(lst0, lst1):
+#     score_arr, from_arr = dp_matching(lst0, lst1)
+#     len_row = len(lst0)
+#     len_col = len(lst1)
 
+#     ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
+#     match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
 
-    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
-    for ptr in ptr_lst:
-        sys.stdout.write(vec_arr[ptr.value] + " ")
-    print("Goal")
-    return
+#     return 1.0 * len(match) / math.sqrt(len_col * len_row)
 
-def calc_dp_matching_sim(lst0, lst1):
-    score_arr, from_arr = dp_matching(lst0, lst1)
-    len_row = len(lst0)
-    len_col = len(lst1)
+# def calc_dp_mod_sim(lst0, lst1):
+#     score_arr, from_arr = dp_matching(lst0, lst1)
+#     len_row = len(lst0)
+#     len_col = len(lst1)
 
-    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
-    match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
+#     ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
+#     match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
 
-    return 1.0 * len(match) / math.sqrt(len_col * len_row)
-
-def calc_dp_mod_sim(lst0, lst1):
-    score_arr, from_arr = dp_matching(lst0, lst1)
-    len_row = len(lst0)
-    len_col = len(lst1)
-
-    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
-    match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
-
-    return 1.0 * len(match) / min(len(lst0), len(lst1))
+#     return 1.0 * len(match) / min(len(lst0), len(lst1))
     
+
+
+def calc_dp_matching_sim_and_dp_mod_sim(lst0, lst1):
+    score_arr, from_arr = dp_matching(lst0, lst1)
+    len_row = len(lst0)
+    len_col = len(lst1)
+
+    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
+    match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
+
+    dp_match_ans = 1.0 * len(match) / math.sqrt(len_col * len_row)
+    dp_mod_ans = 1.0 * len(match) / min(len(lst0), len(lst1))
+
+    return (dp_match_ans, dp_mod_ans)
+
 
 if __name__ == '__main__':
     main()
