@@ -1,21 +1,23 @@
-"""Aligning Patent Claims
+"""Preprocessing Annotated Patent Data
 
-Usage: aligning_patent_claims.py (--claim | --detail) <csv_path>
-       aligning_patent_claims.py [-h | --help]
+Usage: preprocessing_annotated_patent_data.py (--claim | --detail) <csv_path>
+       preprocessing_annotated_patent_data.py [-h | --help]
+
 
 
 Options:
     -h --help   show this help message and exit
-    --claim     FIXME
-    --detail    FIXME
+    --claim     output claim in <csv_path>
+    --detail    output detail in <csv_path>
 """
 
 import csv
-from enum import Enum
-import sys
-import re
-import os.path #あまり使いたくないけど…
 from docopt import docopt
+from enum import Enum
+import os.path #あまり使いたくないけど…
+import re
+import sys
+
 
 #列挙型
 class ReadArea(Enum):
@@ -92,16 +94,6 @@ def output_detail(csv_path):
                 readArea = ReadArea.claim
             elif csv_line_obj[0] == '【発明の詳細な説明】':
                 readArea = ReadArea.detail
-
-            # #請求項に関する行→情報をclaimsに記憶
-            # if (readArea == ReadArea.claim):
-            #     if (len(csv_line_obj) == 2 and len(csv_line_obj[1]) > 0):
-            #         st = csv_line_obj[0]
-            #         num = int(csv_line_obj[1])
-            #         if num in claims:
-            #             claims[num] += st
-            #         else:
-            #             claims[num] = st
 
             #詳細説明に関する行→どうしようかね。
             if (readArea == ReadArea.detail):
