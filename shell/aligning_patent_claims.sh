@@ -15,11 +15,15 @@ function preprocessing_annotated_patent_data(){
 	cut -d $'\t' -f1  $cl_result > $cl_result".num"
 	cut -d $'\t' -f2  $cl_result | tee $cl_result".txt" | mecab -b 10000 -O wakati > $cl_result".txt.wakati"
 
+	paste -d '\t' $cl_result".num" $cl_result".txt.wakati" > $cl_result".num.txt.wakati"
+
 	#詳細説明の抽出
 	dt_result=result/$fname".detail"
 	python3 src/preprocessing_annotated_patent_data.py --detail $csv_path > $dt_result
 	cut -d $'\t' -f1  $dt_result | nkf -Z0 | sed -e 's/<[^>]\+>//g' | tee $dt_result".txt" | mecab -b 10000 -O wakati > $dt_result".txt.wakati"
 	cut -d $'\t' -f2- $dt_result > $dt_result".tags"
+
+	paste -d '\t' $dt_result".txt.wakati" $dt_result".tags" > $dt_result".txt.wakati.tags"
     done
 }
 
