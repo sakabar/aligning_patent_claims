@@ -61,7 +61,7 @@ def output_claim(csv_path):
 
             #請求項に関する行→情報をclaimsに記憶
             if (readArea == ReadArea.claim):
-                if (len(csv_line_obj) == 2 and len(csv_line_obj[1]) > 0):
+                if (len(csv_line_obj) >= 2 and len(csv_line_obj[1]) > 0):
                     st = csv_line_obj[0]
                     num = int(csv_line_obj[1])
                     if num in claims:
