@@ -61,7 +61,7 @@ def output_claim(csv_path):
 
             #請求項に関する行→情報をclaimsに記憶
             if (readArea == ReadArea.claim):
-                if (len(csv_line_obj) == 2 and len(csv_line_obj[1]) > 0):
+                if (len(csv_line_obj) >= 2 and len(csv_line_obj[1]) > 0):
                     st = csv_line_obj[0]
                     num = int(csv_line_obj[1])
                     if num in claims:
@@ -97,11 +97,13 @@ def output_detail(csv_path):
 
             #詳細説明に関する行→どうしようかね。
             if (readArea == ReadArea.detail):
-                if(len(csv_line_obj) >= 2):
-                    st = csv_line_obj[0]
-                    match_obj = detail_regex.search(st)
-                    if (match_obj): #アノテートされた行
-                        st_removed_newline = st.replace('\n', '')
+                st = csv_line_obj[0]
+                match_obj = detail_regex.search(st)
+                if (match_obj):
+                    st_removed_newline = st.replace('\n', '')
+                    if(len(csv_line_obj) == 1):
+                        print(st_removed_newline + "\t")
+                    else:
                         sys.stdout.write(st_removed_newline)
                         for i in range(1, len(csv_line_obj)):
                             sys.stdout.write("\t" + csv_line_obj[i])
