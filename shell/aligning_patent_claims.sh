@@ -28,5 +28,7 @@ function preprocessing_annotated_patent_data(){
 }
 
 preprocessing_annotated_patent_data
+list_dir=list
+cat $list_dir/patent_id_list.txt | python3 src/preprocessing_similarity.py > $list_dir/similarity_list.txt
 #exit 0
 
