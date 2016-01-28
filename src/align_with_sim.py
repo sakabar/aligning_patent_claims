@@ -51,8 +51,8 @@ def main():
             eval_tpl = (w0, w1, w2, sim_th, true_pos, false_pos, false_neg, f)
             print(eval_tpl)
             ans_lst.append(eval_tpl)
-    ans = sorted(ans_lst, key=lambda tpl:tpl[7])[0]
-    print("@@")
+    ans = sorted(ans_lst, key=lambda tpl:tpl[7])[-1]
+    print("#The final result is:")
     print(ans)
 
     return
@@ -67,7 +67,8 @@ def eval_with_weight_and_threshold(rouge_weight, dp_match_weight, dp_mod_weight,
     dp_mod_weight_ = dp_mod_weight / weight_sum
     # assert rouge_weight_ + dp_match_weight_ + dp_mod_weight_ == 1.0, "weight values are not normalized"
 
-    tmp_system_answers = [] #閾値によるフィルタリンをしていない状態の、システムの出力
+    tmp_system_answers = [] #閾値によるフィルタリングをしていない状態の、システムの出力
+    gold_answers_all = set() #全データに関するGold standard
 
     for patent_id in patent_ids:
         #あるdetailに対して、全てのclaimに関して類似度を計算、その中の最大値を返す
@@ -78,21 +79,28 @@ def eval_with_weight_and_threshold(rouge_weight, dp_match_weight, dp_mod_weight,
         for detail_ind, tpl in enumerate(details):
             detail_wakati_lst = tpl[0]
             tags = tpl[1]
-            gold_answers = set([tag[:-1] for tag in tags if len(tag) > 0 and (tag[-1] == 'A' or tag[-1] == 'B')])
+            gold_answers = set([tag[:-1] for tag in tags if len(tag) > 0 and (tag[-1] == 'A' or tag[-1] == 'B')]) #このgold_answersはあるdetailに関するgold_answers。データ全体に関するものではない。
+
+            #gold_answers_allにdetailごとの正解データを追加
+            for gold_claim in gold_answers:
+                tmp_tpl = (patent_id, detail_ind, gold_claim)
+                gold_answers_all.add(tmp_tpl)
 
             for claim_id, claim_wakati_lst in claims.items():
                 key = (patent_id, detail_ind, claim_id)
                 sim = rouge_weight_ * similarity_dic[key][0] + dp_match_weight_ * similarity_dic[key][1] + dp_mod_weight_ * similarity_dic[key][2]
                 assert 0 <= sim <= 1.0, "Invalid similarity"
                 tmp_system_answers.append((patent_id, detail_ind, claim_id, sim, (claim_id in gold_answers)))
-      
 
     ans_lst = []
     for i in range(10):
         sim_th = i / 10
-        true_pos = len([ans_tpl for ans_tpl in tmp_system_answers if ans_tpl[4] and sim >= sim_th])
-        false_pos = len([ans_tpl for ans_tpl in tmp_system_answers if (not ans_tpl[4]) and sim >= sim_th]) #不等号はイコールを含むことに注意
-        false_neg = len([ans_tpl for ans_tpl in tmp_system_answers if ans_tpl[4] and sim < sim_th])
+        tp_set = set([ans_tpl[0:3] for ans_tpl in tmp_system_answers if ans_tpl[3] >= sim_th and ans_tpl[4]])
+        true_pos = len(tp_set)
+        false_pos = len([ans_tpl for ans_tpl in tmp_system_answers if ans_tpl[3] >= sim_th and (not ans_tpl[4])]) #不等号はイコールを含むことに注意
+        fn_set = gold_answers_all.difference(tp_set)
+        false_neg = len(fn_set)
+
         f = calc_f_measure(true_pos, false_pos, false_neg)
         ans_lst.append((sim_th, true_pos, false_pos, false_neg, f))
 
