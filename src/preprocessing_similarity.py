@@ -106,23 +106,24 @@ def dp_matching(lst0, lst1):
     return (score_arr, from_arr)
 
 #(0,0)から(row, col)までのポインタのリストを返す
-def get_ptrs(from_arr, row, col):
+#末尾再帰で書き直した
+def get_ptrs(from_arr, row, col, acc):
     if row == 0 and col == 0:
-        return [from_arr[0][0]]
+        return [from_arr[0][0]] + acc
     else:
         if from_arr[row][col] == Direction.up:
-            return get_ptrs(from_arr, row-1, col) + [from_arr[row][col]]
+            return get_ptrs(from_arr, row-1, col, [Direction.up] + acc)
         elif from_arr[row][col] == Direction.left:
-            return get_ptrs(from_arr, row, col-1) + [from_arr[row][col]]
+            return get_ptrs(from_arr, row, col-1, [Direction.left] + acc)
         elif from_arr[row][col] == Direction.diag:
-            return get_ptrs(from_arr, row-1, col-1) + [from_arr[row][col]]
+            return get_ptrs(from_arr, row-1, col-1, [Direction.diag] + acc)
 
 def calc_dp_matching_sim_and_dp_mod_sim(lst0, lst1):
     score_arr, from_arr = dp_matching(lst0, lst1)
     len_row = len(lst0)
     len_col = len(lst1)
 
-    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1)
+    ptr_lst = get_ptrs(from_arr, len_row-1, len_col-1, [])
     match = [ptr for ptr in ptr_lst if ptr == Direction.diag]
 
     dp_match_sim = 1.0 * len(match) / math.sqrt(len_col * len_row)
