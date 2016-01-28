@@ -12,6 +12,8 @@ import utils
 import math
 import sys
 
+sys.setrecursionlimit(10000) #再帰の回数を指定(デフォルトは1000)
+
 def main():
     result_dir = "/home/lr/tsakaki/work/aligning_patent_claims/result"
 
