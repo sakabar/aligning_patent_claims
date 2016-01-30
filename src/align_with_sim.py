@@ -47,11 +47,11 @@ def main():
             w2 = 1.0 - w0 - w1
             if(w2 < 0 or 1.0 < w0 + w1 + w2):
                 continue
-            sim_th, true_pos, false_pos, false_neg, f = eval_with_weight_and_threshold(w0, w1, w2, patent_ids, similarity_dic)
-            eval_tpl = (w0, w1, w2, sim_th, true_pos, false_pos, false_neg, f)
+
+            eval_tpl = (w0, w1, w2) + eval_with_weight_and_threshold(w0, w1, w2, patent_ids, similarity_dic)
             print(eval_tpl)
             ans_lst.append(eval_tpl)
-    ans = sorted(ans_lst, key=lambda tpl:tpl[7])[-1]
+    ans = sorted(ans_lst, key=lambda tpl:tpl[9])[-1] #9番目:F値
     print("#The final result is:")
     print(ans)
 
@@ -101,27 +101,27 @@ def eval_with_weight_and_threshold(rouge_weight, dp_match_weight, dp_mod_weight,
         fn_set = gold_answers_all.difference(tp_set)
         false_neg = len(fn_set)
 
-        f = calc_f_measure(true_pos, false_pos, false_neg)
-        ans_lst.append((sim_th, true_pos, false_pos, false_neg, f))
+        p, r, f = calc_prec_rec_f_measure(true_pos, false_pos, false_neg)
+        ans_lst.append((sim_th, true_pos, false_pos, false_neg, p, r, f))
 
-    return sorted(ans_lst, key=lambda tpl: tpl[4])[-1]
+    return sorted(ans_lst, key=lambda tpl: tpl[6])[-1]
 
 #PrecisionやRecallが0の場合はF値は算出できないが、
 #この後に最大のF値のみを使うので0としておけばよい
-def calc_f_measure(tp, fp, fn):
+def calc_prec_rec_f_measure(tp, fp, fn):
     p = 0.0
     r = (1.0 * tp / (tp + fn))
     
     if(tp+fp == 0):
-        return 0.0
+        return (0.0, 0.0, 0.0)
     else:
         p = (1.0 * tp / (tp + fp))
 
     if(p != 0 and r != 0):
         f = (2.0 * p * r / (p + r))
-        return f
+        return (p, r, f)
     else:
-        return 0.0
+        return (0.0, 0.0, 0.0)
 
 if __name__ == '__main__':
     main()
