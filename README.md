@@ -1,11 +1,19 @@
 # aligning_patent_claims
 
+#準備?
+libsvm バージョン調べる
+Precision, Recall, F-measureを出すパッチを当てる
+
+
 ## 構成
 shell/aligning_patent_claims.sh 前処理
 src/preprocessing_annotated_patent_data.py 前処理
 src/preprocessing_similarity.py 類似度に関する情報をあらかじめファイルに出力
 src/align_with_sim.py preprocessing_similarity.pyで出力した類似度を読み込み、類似度による手法を行う。類似度ファイルは特許IDに関してソートされていると仮定。(請求項IDや詳細説明IDはソートされていなくてよい)
 
-## 既知の不具合
-98003851から詳細説明のtag(正解データなど)が読み込めていない?
+shell/align_with_ml.sh 機械学習による分類
+src/output_feature_by_previous_method.py
 
+## 既知の不具合
+98003851から詳細説明のtag(正解データなど)が読み込めていない?→たぶん大丈夫
+98006528のtagに入っているのセミコロンって何?
