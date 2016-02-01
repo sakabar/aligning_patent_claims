@@ -41,5 +41,6 @@ function sim_and_keywords(){
 }
 
 CROSS_NUM=4
-sim_only $CROSS_NUM
-sim_and_keywords $CROSS_NUM
+sim_only $CROSS_NUM &
+sim_and_keywords $CROSS_NUM &
+wait
