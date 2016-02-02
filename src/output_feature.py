@@ -1,11 +1,13 @@
-"""Output Feature by Previous Method
+"""Output Feature
 
-Usage: output_feature_by_previous_method.py [-h | --help]
-       output_feature_by_previous_method.py --keywords
+Usage: output_feature.py [-h | --help]
+       output_feature.py --keywords
+       output_feature.py --keywords --topic -t <num_topics> -i <num_iter>
 
 Options:
-    -h --help  show this help message and exit
+    -h, --help  show this help message and exit
     --keywords  類似度だけでなく、手掛かり語の情報も素性に加える
+    --topic     類似度だけでなく、トピックの情報も素性に加える
 """
 
 from docopt import docopt
@@ -20,6 +22,15 @@ def main():
 
     similarity_file_path = '/home/lr/tsakaki/work/aligning_patent_claims/list/similarity_list.txt'
     similarity_dic = utils.get_similarity_dic(similarity_file_path)
+
+    claim_topic_dic = {}
+    detail_topic_dic = {}
+
+    if(args["--topic"]):
+        num_topics = int(args["<num_topics>"])
+        num_iter = int(args["<num_iter>"])
+        claim_topic_dic, detail_topic_dic = utils.get_mallet_result_dic(num_topics, num_iter)
+
 
     for patent_id in sys.stdin:
         patent_id = patent_id.rstrip()
@@ -48,6 +59,9 @@ def main():
                 if(args["--keywords"]):
                     feature_lst = append_keyword_feature(feature_lst, detail_wakati_lst, claim_wakati_lst)
 
+                if(args["--topic"]):
+                    feature_lst = append_topic_feature(feature_lst, claim_topic_dic, detail_topic_dic, patent_id, claim_id, detail_ind)
+
                 feature_str = get_feature_str(claim_id, gold_answers, feature_lst)
                 print(feature_str)
 
@@ -68,6 +82,28 @@ def append_keyword_feature(feature_lst, detail_wakati_lst, claim_wakati_lst):
     for keyword_ind,keyword in enumerate(keywords):
         cnt = counter_dic[keyword]
         ans.append(cnt)
+
+    return ans
+
+#素性リストとトピック数、イテレーション数を指定し、そのトピック数・イテレーション数で実行したmalletの結果を読み込んでなにやらする。
+#素性リストにトピックに関する素性を加え、新しい素性リストを返す
+#請求項に現れるトピックごとの出現率(長さ:トピック数)、正規化
+#詳細説明に現れるトピックごとの出現率(長さ:トピック数)、正規化
+#これらのベクトルのcos類似度
+def append_topic_feature(feature_lst, claim_topic_dic, detail_topic_dic, patent_id, claim_id, detail_ind):
+    ans = copy.deepcopy(feature_lst)
+
+    claim_topic_dist = claim_topic_dic[(patent_id, claim_id)]
+    detail_topic_dist = detail_topic_dic[(patent_id, detail_ind)]
+    topic_sim = utils.cos_sim(claim_topic_dist, detail_topic_dist)
+
+    ans.append(topic_sim)
+    return ans
+
+
+
+
+
 
     return ans
 

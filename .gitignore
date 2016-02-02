@@ -6,4 +6,7 @@ error.txt
 #機械学習に関するディレクトリ・ファイル
 feature
 
+#malletに関するディレクトリ・ファイル
+input_doc_dir
+mallet_dir
 
