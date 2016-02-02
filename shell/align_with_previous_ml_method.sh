@@ -6,7 +6,7 @@ set -ue
 function sim_only(){
     CROSS_NUM=$1
     SIM_ONLY_DIR=feature/previous_method/sim_only
-    cat list/patent_id_list.txt| python3 src/output_feature_by_previous_method.py > $SIM_ONLY_DIR/all.feature
+    cat list/patent_id_list.txt| python3 src/output_feature.py > $SIM_ONLY_DIR/all.feature
     cat $SIM_ONLY_DIR/all.feature | grep "^1 " > $SIM_ONLY_DIR/pos_sample.feature
     cat $SIM_ONLY_DIR/all.feature | grep "^-1 " > $SIM_ONLY_DIR/neg_sample.feature
 
@@ -25,7 +25,7 @@ function sim_only(){
 function sim_and_keywords(){
     CROSS_NUM=$1
     SIM_AND_KEYWORDS_DIR=feature/previous_method/sim_and_keywords
-    cat list/patent_id_list.txt| python3 src/output_feature_by_previous_method.py --keywords > $SIM_AND_KEYWORDS_DIR/all.feature
+    cat list/patent_id_list.txt| python3 src/output_feature.py --keywords > $SIM_AND_KEYWORDS_DIR/all.feature
     cat $SIM_AND_KEYWORDS_DIR/all.feature | grep "^1 " > $SIM_AND_KEYWORDS_DIR/pos_sample.feature
     cat $SIM_AND_KEYWORDS_DIR/all.feature | grep "^-1 " > $SIM_AND_KEYWORDS_DIR/neg_sample.feature
 
