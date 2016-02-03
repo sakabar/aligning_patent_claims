@@ -5,6 +5,10 @@ set -ue
 MALLET_DIR=mallet_dir
 MALLET_INPUT_DIR=$MALLET_DIR/input_doc_dir
 
+if [ ! -e $MALLET_INPUT_DIR ]; then
+  mkdir -p $MALLET_INPUT_DIR
+fi
+
 #ファイルを一行ごとに分割して$MALLET_INPUT_DIRに格納
 for f in result/*.claim.txt.wakati; do
     split -l 1 $f $MALLET_INPUT_DIR/${f##*/}"." --numeric-suffixes --suffix-length=4
