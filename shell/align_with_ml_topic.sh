@@ -17,8 +17,8 @@ function sim_and_keywords_and_topic(){
     CROSS_NUM=$1
     SIM_AND_KEYWORDS_AND_TOPIC_DIR=feature/proposed_method/sim_and_keywords_and_topic/t_$NUM_TOPICS/i_$NUM_ITER
     if [ -e $SIM_AND_KEYWORDS_AND_TOPIC_DIR/result.txt ]; then
-	echo "The directory already exists" >&2
-	exit 1
+	echo "The result file already exists" >&2
+        # exit 1
     fi
 
 MALLET_RESULT_DIR=/home/lr/tsakaki/work/aligning_patent_claims/mallet_dir/result/t_$NUM_TOPICS/i_$NUM_ITER
