@@ -18,7 +18,7 @@ NUM_ITER=$2
 RESULT_DIR=$MALLET_DIR/result/t_$NUM_TOPICS/i_$NUM_ITER
 if [ -e $RESULT_DIR/doc-topics.txt ]; then
   echo "The result file already exists" >&2
-  exit 0
+  # exit 0
 fi
 mkdir -p $RESULT_DIR
 

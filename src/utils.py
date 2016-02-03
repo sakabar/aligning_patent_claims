@@ -87,7 +87,7 @@ def get_mallet_result_dic(num_topics, num_iter):
                         raise Exception('dup key error')
                     detail_topic_dic[key] = topic_dist_lst
                 else:
-                    raise Exception('mallet_dir error')
+                    raise Exception('mallet_dir error : %s' % doc_path)
                 
     return (claim_topic_dic, detail_topic_dic)
 
