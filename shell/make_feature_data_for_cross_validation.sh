@@ -3,10 +3,14 @@
 set -ue
 
 #交差検定用にデータを作る
-CROSS_NUM=10
+CROSS_NUM=4
 
-d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/sim_and_keywords_and_topic/t_100/i_30000/handmade
+#d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/sim_and_keywords_and_topic/t_100/i_30000/handmade
 #$dにall.featureが格納されていて、これを分割する
+
+# d=~/work/aligning_patent_claims/feature/previous_method/sim_and_keywords/
+d=~/work/aligning_patent_claims/feature/previous_method/sim_only/
+
 
 grep "^1 " $d/all.feature > $d/pos_all.feature
 grep "^-1 " $d/all.feature > $d/neg_all.feature
@@ -17,23 +21,22 @@ pos_split_num=$[$pos_num / $CROSS_NUM + 1]
 neg_num=`cat $d/neg_all.feature | grep -c ""`
 neg_split_num=$[$neg_num / $CROSS_NUM + 1]
 
-split -l $pos_split_num $d/pos_all.feature "$d/pos_" --numeric-suffixes=1 --suffix-length=2 &#
-split -l $neg_split_num $d/neg_all.feature "$d/neg_" --numeric-suffixes=1 --suffix-length=2 &#
+split -l $pos_split_num $d/pos_all.feature "$d/pos_" --numeric-suffixes=1 --suffix-length=2 & #
+split -l $neg_split_num $d/neg_all.feature "$d/neg_" --numeric-suffixes=1 --suffix-length=2 & #
 wait
 
 for i in {01..$CROSS_NUM}; do
-    line_num=`grep -c "" pos_$i`
-    cat $d/neg_$i | sort -R | head -n $[$line_num * 3] > $d/neg_$i".sample" &#
+    line_num=`grep -c "" $d/pos_$i`
+    cat $d/neg_$i | sort -R | head -n $[$line_num * 3] > $d/neg_$i".sample" & #
+done
+
+#まずtestデータの作成
+for i in {01..$CROSS_NUM}; do
+   cat $d/pos_$i $d/neg_$i > $d/test_$i & #
 done
 wait
 
-#まずtest
-for i in {01..$CROSS_NUM}; do
-   cat $d/pos_$i $d/neg_$i > $d/test_$i &#
-done
-
-
-#まずtrain
+#次にtrainingデータ
 for i in {01..$CROSS_NUM}; do
 {
     if [ $i -ge 2 ]; then
@@ -50,8 +53,9 @@ for i in {01..$CROSS_NUM}; do
 } > $d/train_$i
 done
 
+#学習
 for i in {01..$CROSS_NUM}; do
-    svm-train -h 0 $d/train_$i &#
+    svm-train -h 0 $d/train_$i $d/train_$i.model &#
 done
 wait
 
