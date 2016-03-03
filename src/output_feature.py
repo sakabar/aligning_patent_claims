@@ -3,11 +3,13 @@
 Usage: output_feature.py [-h | --help]
        output_feature.py --keywords
        output_feature.py --keywords --topic -t <num_topics> -i <num_iter>
+       output_feature.py --keywords --word2vec
 
 Options:
     -h, --help  show this help message and exit
     --keywords  類似度だけでなく、手掛かり語の情報も素性に加える
     --topic     類似度だけでなく、トピックの情報も素性に加える
+    --word2vec  類似度だけでなく、word2vecの情報も素性に加える
 """
 
 from docopt import docopt
@@ -15,6 +17,7 @@ import sys
 import utils
 import collections
 import copy
+import math
 
 #patent_idの一覧を標準入力から読み込む
 def main():
@@ -25,6 +28,8 @@ def main():
 
     claim_topic_dic = {}
     detail_topic_dic = {}
+
+    word2vec_dic = get_word2vec_dic()
 
     if(args["--topic"]):
         num_topics = int(args["<num_topics>"])
@@ -62,8 +67,12 @@ def main():
                 if(args["--topic"]):
                     feature_lst = append_topic_feature(feature_lst, claim_topic_dic, detail_topic_dic, patent_id, claim_id, detail_ind)
 
+                if(args["--word2vec"]):
+                    feature_lst = append_word2vec_feature(feature_lst, detail_wakati_lst, claim_wakati_lst, word2vec_dic)
+
                 feature_str = get_feature_str(claim_id, gold_answers, feature_lst)
                 print(feature_str)
+
 
     return
 
@@ -100,12 +109,60 @@ def append_topic_feature(feature_lst, claim_topic_dic, detail_topic_dic, patent_
     ans.append(topic_sim)
     return ans
 
+def get_word2vec_dic():
+    mean_vec_dic = {}
+    with open('/home/lr/tsakaki/work/aligning_patent_claims/word2vec/ntcir_tail.vec', 'r') as f:
+    # with open('/home/lr/tsakaki/work/aligning_patent_claims/word2vec/small_tail.vec', 'r') as f:
+        for line in f:
+            line = line.rstrip()
+            lst = line.split()
+            word = lst[0]
+            vals = [float(a) for a in lst[1:]]
+            mean_vec_dic[word] = vals
+
+    return mean_vec_dic
+
+#word2vecの素性
+#claimとdetailの文ベクトル(単語ベクトルの平均)のコサイン類似度
+def append_word2vec_feature(feature_lst, detail_wakati_lst, claim_wakati_lst, word2vec_dic):
+    ans = copy.deepcopy(feature_lst)
+    detail_vec_lst = [utils.normalize_vec(word2vec_dic[word]) for word in detail_wakati_lst if word in word2vec_dic]
+    claim_vec_lst =  [utils.normalize_vec(word2vec_dic[word]) for word in claim_wakati_lst  if word in word2vec_dic]
+
+    detail_mean_vec = utils.vec_mean(detail_vec_lst)
+    claim_mean_vec = utils.vec_mean(claim_vec_lst)
+    # detail_mean_vec = utils.vec_sum(detail_vec_lst) #やっぱ和だけ。
+    # claim_mean_vec = utils.vec_sum(claim_vec_lst)
 
 
+    if len(detail_mean_vec) != 0 and len(claim_mean_vec) != 0:
+        word2vec_sim = utils.cos_sim(detail_mean_vec, claim_mean_vec)
 
+        if math.isnan(word2vec_sim): #(1.0 > word2vec_sim > 0.90):
+            #何故このような場合がある? 本当に類似している? FIXME
+            sys.stderr.write("%f\n" % word2vec_sim)
+            sys.stderr.write("\n")
+            sys.stderr.write("%s\n" % str(utils.normalize_vec(detail_mean_vec)))
+            sys.stderr.write("%s\n" % str(utils.normalize_vec(claim_mean_vec)))
+            sys.stderr.write("\n")
 
+            sys.stderr.write("%s\n" % str(detail_vec_lst))
+            sys.stderr.write("%s\n" % str(claim_vec_lst))
+            sys.stderr.write("\n")
 
-    return ans
+            sys.stderr.write("%s\n" % str([word for word in claim_wakati_lst if word in word2vec_dic]))
+            sys.stderr.write("%s\n" % str([word for word in detail_wakati_lst if word in word2vec_dic]))
+            
+            
+            sys.stderr.write("%s\n" % str(detail_wakati_lst))
+            sys.stderr.write("%s\n" % str(claim_wakati_lst))
+
+            sys.exit(1)
+        ans.append(word2vec_sim)
+        return ans
+    else:
+        ans.append(0.0)
+        return ans
 
 def get_feature_str(claim_id, gold_answers, feature_lst):
     ans_lst = []
