@@ -3,9 +3,11 @@
 set -ue
 
 #交差検定用にデータを作る
-CROSS_NUM=10
+CROSS_NUM=4
 
-d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/sim_and_keywords_and_topic/t_100/i_30000/handmade
+# d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/sim_and_keywords_and_topic/t_100/i_30000/handmade
+# d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/sim_and_keywords_and_topic/t_100/i_30000/handmade
+d=/home/lr/tsakaki/work/aligning_patent_claims/feature/proposed_method/w2v
 #$dにall.featureが格納されていて、これを分割する
 
 grep "^1 " $d/all.feature > $d/pos_all.feature
@@ -22,7 +24,7 @@ split -l $neg_split_num $d/neg_all.feature "$d/neg_" --numeric-suffixes=1 --suff
 wait
 
 for i in {01..$CROSS_NUM}; do
-    line_num=`grep -c "" pos_$i`
+    line_num=`grep -c "" $d/pos_$i`
     cat $d/neg_$i | sort -R | head -n $[$line_num * 3] > $d/neg_$i".sample" &#
 done
 wait
@@ -56,6 +58,7 @@ done
 wait
 
 for i in {01..$CROSS_NUM}; do
+  mv train_$i.model $d
   svm-predict $d/test_$i $d/train_$i.model $d/predict_$i > /dev/null &#
 done
 wait

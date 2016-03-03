@@ -101,5 +101,30 @@ def vec_abs(lst):
 def cos_sim(lst1, lst2):
     if len(lst1) != len(lst2):
         raise Exception('Wrong length')
+    elif lst1 == [] and lst2 == []:
+        return 0.0
+    else:
+        return 1.0 * dot_times(lst1, lst2) / vec_abs(lst1) / vec_abs(lst2)
 
-    return 1.0 * dot_times(lst1, lst2) / vec_abs(lst1) / vec_abs(lst2)
+#vec_sum([[1,2,3], [4,5,6]]) = [5,7,9]
+def vec_sum(vec_lst):
+    if len(vec_lst) == 0:
+        return []
+    else:
+        ans = vec_lst[0]
+        for vec in vec_lst[1:]:
+            for i in range(len(ans)):
+                ans[i] += vec[i]
+
+        return ans
+
+#意味ベクトルの和をとって、平均する
+def vec_mean(vec_lst):
+    num = len(vec_lst)
+    return [1.0 * f / num  for f in vec_sum(vec_lst)]
+
+#ベクトルの正規化
+def normalize_vec(vec):
+    vec_len = vec_abs(vec)
+    return [f / vec_len for f in vec]
+
