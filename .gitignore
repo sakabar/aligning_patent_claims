@@ -10,3 +10,7 @@ feature
 input_doc_dir
 mallet_dir
 
+psv_claim_cabocha_dir
+psv_detail_cabocha_dir
+psv_result_dir
+psv_tmp_dir

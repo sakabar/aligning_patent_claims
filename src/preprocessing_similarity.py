@@ -56,11 +56,6 @@ class Direction(Enum):
     left = 2
     diag = 3
 
-
-#r_num * c_numの行列を初期化
-def init_arr(r_num, c_num):
-    return [[0 for i in range(c_num)] for j in range(r_num)]
-
 #r_num * c_numの行列を初期化
 #direct
 def init_direction_arr(r_num, c_num):
@@ -69,7 +64,7 @@ def init_direction_arr(r_num, c_num):
 #lst0とlst1の間でマッチング
 #FIXME これ、グローバルマッチングかな?
 def dp_matching(lst0, lst1):
-    score_arr = init_arr(len(lst0), len(lst1))
+    score_arr = utils.init_arr(len(lst0), len(lst1))
 
     char_pena = -3 # 字が合わないときのペナルティ
     shift_pena = -1 #上下にズレるときのペナルティ

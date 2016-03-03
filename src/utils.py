@@ -103,3 +103,7 @@ def cos_sim(lst1, lst2):
         raise Exception('Wrong length')
 
     return 1.0 * dot_times(lst1, lst2) / vec_abs(lst1) / vec_abs(lst2)
+
+#r_num * c_numの行列を初期化
+def init_arr(r_num, c_num):
+    return [[0 for i in range(c_num)] for j in range(r_num)]
